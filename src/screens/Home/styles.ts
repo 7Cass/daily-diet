@@ -21,7 +21,6 @@ export const Section = styled.View`
 export const styles = StyleSheet.create({
   card: {
     width: '100%',
-    backgroundColor: theme.colors.brand.green_light,
     alignItems: 'center',
     padding: 20,
     borderRadius: 8,
@@ -31,7 +30,6 @@ export const styles = StyleSheet.create({
     position: 'absolute',
     right: 10,
     top: 10,
-    color: theme.colors.brand.green_dark
   },
   sectionTitle: {
     fontSize: 16,

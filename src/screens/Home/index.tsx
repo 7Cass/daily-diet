@@ -7,33 +7,11 @@ import { AppNavigatorRoutesProp } from "@routes/app.routes";
 import { Button } from "@components/Button";
 import theme from "@theme/index";
 import { useState } from "react";
-
-type Meal = {
-  id: string;
-  hour: string;
-  meal: string;
-  onDiet: boolean;
-};
-
-export type MealHistory = {
-  title: string;
-  data: Meal[];
-};
+import { useMeal } from "@hooks/useMeal";
+import CalculateDietPercentage from "@utils/calculateDietPercentage";
 
 export function Home() {
-  const [meals, setMeals] = useState<MealHistory[]>([
-    { title: '12.08.22', data: [
-      { id: '22b43b0b-7d57-4d36-9d14-0948f46b4a1e', hour: '20:00', meal: 'X-tudo', onDiet: false },
-      { id: '22b43b0b-7d57-4d36-9d14-0948f46b4a2a', hour: '17:20', meal: 'Salada', onDiet: true },
-      { id: '22b43b0b-7d57-4d36-9d14-0948f46b4a3b', hour: '09:30', meal: 'Whey Protein com leite', onDiet: true },
-      { id: '22b43b0b-7d57-4d36-9d14-0948f46b4a4c', hour: '13:45', meal: 'Vitamina de banana', onDiet: true }
-    ]},
-    { title: '13.08.22', data: [
-      { id: '22b43b0b-7d57-4d36-9d14-0948f46b4a5e', hour: '22:00', meal: 'X-tudo', onDiet: false },
-      { id: '22b43b0b-7d57-4d36-9d14-0948f46b4a6i', hour: '19:00', meal: 'Batata Frita', onDiet: false },
-      { id: '22b43b0b-7d57-4d36-9d14-0948f46b4a7o', hour: '10:30', meal: 'Nuggets', onDiet: false }
-    ]}
-  ]);
+  const { meals, dietPercentage } = useMeal();
   const navigation = useNavigation<AppNavigatorRoutesProp>();
 
   function handleOpenStatistic() {
@@ -51,10 +29,19 @@ export function Home() {
   return (
     <Container>
       <Header />
-        <TouchableOpacity onPress={handleOpenStatistic} style={styles.card}>
-            <Title>90,86%</Title>
+        <TouchableOpacity
+          onPress={handleOpenStatistic}
+          style={[
+            styles.card,
+            { backgroundColor: dietPercentage >= 50 ? theme.colors.brand.green_light : theme.colors.brand.red_light }
+          ]}
+          >
+            <Title>{dietPercentage}%</Title>
             <Text>das refeições dentro da dieta</Text>
-            <ArrowUpRight style={styles.icon} />
+            <ArrowUpRight
+              color={dietPercentage >= 50 ? theme.colors.brand.green_dark : theme.colors.brand.red_dark}
+              style={styles.icon}
+            />
         </TouchableOpacity>
 
         <Section>
@@ -81,13 +68,30 @@ export function Home() {
                   borderRadius: 6
                 }}>
                 <Text>{item.hour}</Text>
-                <Text numberOfLines={1} style={{ flex: 1 }}>{item.meal}</Text>
+                <Text numberOfLines={1} style={{ flex: 1 }}>{item.name}</Text>
                 <Circle size={18} weight="fill" color={item.onDiet ? theme.colors.brand.green_mid : theme.colors.brand.red_mid} />
               </TouchableOpacity>
             )}
             renderSectionHeader={({ section }) => (
               <View style={{ backgroundColor: theme.colors.base.gray_700, paddingTop: 32 }}>
                 <Text style={{ fontSize: 18, fontFamily: theme.font_family.bold }}>{section.title}</Text>
+              </View>
+            )}
+            ListEmptyComponent={() => (
+              <View
+                style={{
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginTop: 48,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: theme.font_size.body.sm,
+                    color: theme.colors.base.gray_300,
+                    textAlign: 'center'
+                  }}
+                >Parece que você ainda não cadastrou nenhuma refeição.</Text>
               </View>
             )}
             contentContainerStyle={{ paddingBottom: 32 }}

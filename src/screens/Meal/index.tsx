@@ -5,8 +5,11 @@ import { styles } from "./styles";
 import { ArrowLeft, Pencil, Trash } from "phosphor-react-native";
 import theme from "@theme/index";
 import { Button } from "@components/Button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Modal } from "@components/Modal";
+import { useMeal } from "@hooks/useMeal";
+import { MealDTO } from "@dtos/Meal";
+import formatDateAndHour from "@utils/formatDateAndHour";
 
 type RouteParamsProps = {
   id: string;
@@ -14,8 +17,10 @@ type RouteParamsProps = {
 
 export function Meal() {
   const [isOpen, setIsOpen] = useState(false);
+  const [meal, setMeal] = useState<MealDTO>({} as MealDTO);
   const route = useRoute();
   const navigation = useNavigation<AppNavigatorRoutesProp>();
+  const { findMealById, deleteMealById, meals } = useMeal();
   const { id } = route.params as RouteParamsProps;
 
   function handleGoBack() {
@@ -31,11 +36,23 @@ export function Meal() {
   }
 
   function handleDeleteMeal(mealId: string) {
+    deleteMealById(mealId);
     handleToggleModal();
+    navigation.goBack();
   }
 
+  useEffect(() => {
+    const meal = findMealById(id) as MealDTO;
+    setMeal(meal);
+  }, [meals]);
+
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: meal.onDiet ? theme.colors.brand.green_light : theme.colors.brand.red_light }
+      ]}
+    >
       { 
         isOpen && 
         <Modal
@@ -65,10 +82,10 @@ export function Meal() {
                 fontFamily: theme.font_family.bold,
                 fontSize: 20
               }}
-            >Comida</Text>
+            >{meal.name}</Text>
             <Text
               style={{ fontSize: 16 }}
-            >Sanduíche de pão integral com atum e salada de alface e tomate</Text>
+            >{meal.description}</Text>
           </View>
 
           <View style={{ gap: 8 }}>
@@ -80,7 +97,7 @@ export function Meal() {
             >Data e hora</Text>
             <Text
               style={{ fontSize: 16 }}
-            >12/08/2022 às 16:00</Text>
+            >{formatDateAndHour(meal.date, meal.hour, 'às')}</Text>
           </View>
 
           <View
@@ -96,8 +113,8 @@ export function Meal() {
               gap: 8
             }}
           >
-            <View style={{ backgroundColor: theme.colors.brand.green_dark, width: 8, height: 8, borderRadius: 9999  }} />
-            <Text>dentro da dieta</Text>
+            <View style={{ backgroundColor: meal.onDiet ? theme.colors.brand.green_dark : theme.colors.brand.red_dark, width: 8, height: 8, borderRadius: 9999  }} />
+            <Text>{ meal.onDiet ? 'dentro da dieta' : 'fora da dieta' }</Text>
           </View>
         </View>
         <View style={{ gap: 8 }}>

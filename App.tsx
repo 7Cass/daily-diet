@@ -6,6 +6,7 @@ import { ThemeProvider } from 'styled-components/native';
 import theme from '@theme/index';
 import { Loading } from '@components/Loading';
 import { Routes } from '@routes/index';
+import { MealContextProvider } from '@contexts/mealContext';
 
 export default function App() {
   const [fontsLoaded] = useFonts({ NunitoSans_400Regular, NunitoSans_700Bold });
@@ -23,7 +24,9 @@ export default function App() {
           backgroundColor="transparent"
           translucent
         />
-        { fontsLoaded ? <Routes /> : <Loading /> }
+        <MealContextProvider>
+          { fontsLoaded ? <Routes /> : <Loading /> }
+        </MealContextProvider>
       </View>
     </ThemeProvider>
   );

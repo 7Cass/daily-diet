@@ -4,19 +4,28 @@ import { ArrowLeft } from "phosphor-react-native";
 import theme from "@theme/index";
 import { useNavigation } from "@react-navigation/native";
 import { AppNavigatorRoutesProp } from "@routes/app.routes";
+import { useMeal } from "@hooks/useMeal";
+import { useEffect, useState } from "react";
+import findBestDietSequence from "@utils/findBestDietSequence";
 
 export function Statistic() {
+  const [bestSequence, setBestSequence] = useState(0);
+  const { meals, dietPercentage } = useMeal();
   const navigation = useNavigation<AppNavigatorRoutesProp>();
 
   function handleGoBack() {
     navigation.goBack();
   }
 
+  useEffect(() => {
+    setBestSequence(findBestDietSequence(meals));
+  }, []);
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: dietPercentage >= 50 ? theme.colors.brand.green_light : theme.colors.brand.red_light }]}>
       <View style={styles.header}>
         <Pressable onPress={handleGoBack}>
-          <ArrowLeft color={theme.colors.brand.green_dark} />
+          <ArrowLeft color={dietPercentage >= 50 ? theme.colors.brand.green_dark : theme.colors.brand.red_dark} />
         </Pressable>
         <View style={styles.card}>
             <Text
@@ -25,7 +34,7 @@ export function Statistic() {
                 fontSize: theme.font_size.body.lg,
                 color: theme.colors.base.gray_100
               }}
-            >90,86%</Text>
+            >{dietPercentage}%</Text>
             <Text
               style={{
                 fontSize: theme.font_size.body.sm,
@@ -60,7 +69,7 @@ export function Statistic() {
                 fontSize: theme.font_size.body.md,
                 color: theme.colors.base.gray_100
               }}
-            >22</Text>
+            >{bestSequence}</Text>
             <Text
               style={{
                 fontSize: theme.font_size.body.sm,
@@ -84,7 +93,7 @@ export function Statistic() {
                 fontSize: theme.font_size.body.md,
                 color: theme.colors.base.gray_100
               }}
-            >109</Text>
+            >{meals.reduce((acc, meal) => acc + meal.data.length, 0)}</Text>
             <Text
               style={{
                 fontSize: theme.font_size.body.sm,
@@ -114,7 +123,7 @@ export function Statistic() {
                   fontSize: theme.font_size.body.md,
                   color: theme.colors.base.gray_100
                 }}
-              >99</Text>
+              >{meals.reduce((acc, meal) => acc + meal.data.filter(meal => meal.onDiet).length, 0)}</Text>
               <Text
                 style={{
                   fontSize: theme.font_size.body.sm,
@@ -139,7 +148,7 @@ export function Statistic() {
                   fontSize: theme.font_size.body.md,
                   color: theme.colors.base.gray_100,
                 }}
-              >10</Text>
+              >{meals.reduce((acc, meal) => acc + meal.data.filter(meal => !meal.onDiet).length, 0)}</Text>
               <Text
                 style={{
                   fontSize: theme.font_size.body.sm,

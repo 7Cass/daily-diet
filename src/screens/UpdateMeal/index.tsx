@@ -1,16 +1,21 @@
-import { Pressable, Text, View } from "react-native";
+import { Alert, Pressable, Text, View } from "react-native";
 import { styles } from "./styles";
 import { ArrowLeft } from "phosphor-react-native";
 import theme from "@theme/index";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { AppNavigatorRoutesProp } from "@routes/app.routes";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { Button } from "@components/Button";
 import { Input } from "@components/Input";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMeal } from "@hooks/useMeal";
+import { MealDTO } from "@dtos/Meal";
+
+type RouteParamsProps = {
+  id: string;
+};
 
 type FormDataProps = {
   name: string;
@@ -27,13 +32,17 @@ const createMealSchema = yup.object({
   hour: yup.string().required("Campo obrigatório"),
 });
 
-export function NewMeal() {
-  const { control, handleSubmit, formState: { errors } } = useForm<FormDataProps>({
-    resolver: yupResolver(createMealSchema)
+
+export function UpdateMeal() {
+  const [meal, setMeal] = useState({} as MealDTO);
+  const { control, handleSubmit, formState: { errors }, setValue } = useForm<FormDataProps>({
+    resolver: yupResolver(createMealSchema),
   });
 
   const navigation = useNavigation<AppNavigatorRoutesProp>();
-  const { addMeal } = useMeal();
+  const route = useRoute();
+  const { id } = route.params as RouteParamsProps;
+  const { findMealById, updateMealById } = useMeal();
 
   const [onDiet, setOnDiet] = useState<boolean | null>(null);
 
@@ -41,26 +50,22 @@ export function NewMeal() {
     navigation.goBack();
   }
 
-  function handleCreateNewMeal(data: FormDataProps): void {
-    try {
-      data.onDiet = !!onDiet;
-
-      const randomId = `vcop${Math.round(Math.random())}dksaj${Math.round(Math.random())}kjgtr${Math.round(Math.random())}`;
-
-      addMeal({
-        id: randomId,
-        date: data.date,
-        description: data.description,
-        hour: data.hour,
-        name: data.name,
-        onDiet: data.onDiet,
-      });
-
-      navigation.navigate('feedback', { isOnDiet: !!onDiet });
-    } catch (error) {
-      // @Todo: Handle errors when api is implemented
-    }
+  function handleUpdateMeal(data: FormDataProps): void {
+    updateMealById(id, {...data, onDiet: !!onDiet});
+    navigation.navigate('meal', { id });
   }
+
+  useEffect(() => {
+    const meal = findMealById(id) as MealDTO;
+    setMeal(meal);
+    setOnDiet(meal.onDiet);
+    if (meal) {
+      setValue('name', meal.name);
+      setValue('description', meal.description);
+      setValue('date', meal.date);
+      setValue('hour', meal.hour);
+    }
+  }, [])
 
   function toggleSelected(onDiet: boolean): void {
     setOnDiet(onDiet);
@@ -77,7 +82,7 @@ export function NewMeal() {
             fontFamily: theme.font_family.bold,
             fontSize: 18,
           }}
-        >Nova refeição</Text>
+        >Editar refeição</Text>
       </View>
       <View style={styles.section}>
 
@@ -85,9 +90,10 @@ export function NewMeal() {
           <Controller 
               control={control}
               name="name"
-              render={({ field: { onChange } }) => (
+              render={({ field: { onChange, value } }) => (
                 <Input
                   onChangeText={onChange}
+                  value={value}
                   errorMessage={errors.name?.message}
                   label="Nome"
                   placeholder="Nome da refeição"
@@ -99,9 +105,10 @@ export function NewMeal() {
             <Controller 
               control={control}
               name="description"
-              render={({ field: { onChange } }) => (
+              render={({ field: { onChange, value } }) => (
                 <Input
                   onChangeText={onChange}
+                  value={value}
                   errorMessage={errors.description?.message}
                   type="textarea"
                   multiline
@@ -117,9 +124,10 @@ export function NewMeal() {
               <Controller 
                   control={control}
                   name="date"
-                  render={({ field: { onChange } }) => (
+                  render={({ field: { onChange, value } }) => (
                     <Input
                       onChangeText={onChange}
+                      value={value}
                       errorMessage={errors.date?.message}
                       customStyle={{ flex: 1 }}
                       label="Data"
@@ -132,8 +140,9 @@ export function NewMeal() {
               <Controller 
                 control={control}
                 name="hour"
-                render={({ field: { onChange } }) => (
+                render={({ field: { onChange, value } }) => (
                   <Input
+                    value={value}
                     onChangeText={onChange}
                     errorMessage={errors.hour?.message}
                     customStyle={{ flex: 1 }}
@@ -216,14 +225,14 @@ export function NewMeal() {
             </View>
         </View>
 
-        <Button onPress={handleSubmit(handleCreateNewMeal)}>
+        <Button onPress={handleSubmit(handleUpdateMeal)}>
           <Text 
             style={{
               fontFamily: theme.font_family.bold,
               fontSize: theme.font_size.body.sm,
               color: theme.colors.base.white
             }}
-          >Cadastrar Refeição</Text>
+          >Salvar Alterações</Text>
         </Button>
       </View>
     </View>

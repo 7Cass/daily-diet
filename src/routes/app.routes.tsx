@@ -4,6 +4,7 @@ import { Home } from '@screens/Home';
 import { Meal } from '@screens/Meal';
 import { NewMeal } from '@screens/NewMeal';
 import { Statistic } from '@screens/Statistic';
+import { UpdateMeal } from '@screens/UpdateMeal';
 
 type AppRoutes = {
   home: undefined
@@ -30,6 +31,7 @@ export function AppRoutes() {
       <Screen name="register" component={NewMeal}/>
       <Screen name="feedback" component={Feedback}/>
       <Screen name="meal" component={Meal}/>
+      <Screen name="update" component={UpdateMeal}/>
     </Navigator>
   )
 }
